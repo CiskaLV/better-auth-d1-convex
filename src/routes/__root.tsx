@@ -11,7 +11,9 @@ import { Suspense } from "solid-js";
 
 import styleCss from "../styles.css?url";
 
-export const Route = createRootRouteWithContext()({
+import type { RouterContext } from "~/router";
+
+export const Route = createRootRouteWithContext<RouterContext>()({
   head: () => ({
     links: [{ rel: "stylesheet", href: styleCss }],
   }),

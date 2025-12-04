@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/solid-router";
 import { Show } from "solid-js";
 import { authClient } from "~/lib/auth/client";
 
-export const Route = createFileRoute("/")({ component: App });
+export const Route = createFileRoute("/")({
+  component: App,
+});
 
 function App() {
   const session = authClient.useSession();

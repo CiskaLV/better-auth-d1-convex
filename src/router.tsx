@@ -1,13 +1,13 @@
-import { createRouter } from '@tanstack/solid-router'
+import { createRouter } from "@tanstack/solid-router";
+import { routeTree } from "./routeTree.gen";
 
-// Import the generated route tree
-import { routeTree } from './routeTree.gen'
+export type RouterContext = {};
 
-// Create a new router instance
 export const getRouter = () => {
   const router = createRouter({
     routeTree,
     scrollRestoration: true,
-  })
-  return router
-}
+    context: {},
+  });
+  return router;
+};

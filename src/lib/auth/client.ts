@@ -1,6 +1,8 @@
 import { createAuthClient } from "better-auth/solid";
-import { oidcClient } from "~/lib/auth/plugins/oidc/client";
+import { jwtClient } from "better-auth/client/plugins";
 
 export const authClient = createAuthClient({
-  plugins: [oidcClient()],
+  plugins: [jwtClient()],
 });
+
+export const getToken = authClient.token;

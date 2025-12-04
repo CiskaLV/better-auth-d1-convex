@@ -19,4 +19,12 @@ export default defineConfig({
     tanstackStart(),
     solidPlugin({ ssr: true }),
   ],
+  build: {
+    rolldownOptions: {
+      external: ["cloudflare:workers"],
+    },
+  },
+  ssr: {
+    noExternal: ["better-auth"],
+  },
 });
