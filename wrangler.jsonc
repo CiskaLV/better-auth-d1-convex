@@ -1,7 +1,44 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "better-auth-d1-convex-solid",
-  "compatibility_date": "2025-12-04",
+  "compatibility_date": "2025-12-02",
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/solid-start/server-entry",
+  "vars": {
+    "BETTER_AUTH_URL": "http://localhost:3000",
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "better-auth-convex-solid",
+      "database_id": "da8626e6-e1af-4aeb-a606-67872e5d3ced",
+      "migrations_dir": "drizzle",
+    },
+  ],
+
+  "env": {
+    "production": {
+      "vars": {
+        "BETTER_AUTH_URL": "https://better-auth-d1-convex-solid.ciska.workers.dev/",
+      },
+
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "better-auth-convex-solid",
+          "database_id": "da8626e6-e1af-4aeb-a606-67872e5d3ced",
+          "migrations_dir": "drizzle",
+        },
+      ],
+    },
+  },
+
+  "observability": {
+    "enabled": true,
+  },
+
+  "placement": {
+    "mode": "smart",
+  },
 }
