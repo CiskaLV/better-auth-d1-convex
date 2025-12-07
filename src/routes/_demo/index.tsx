@@ -9,8 +9,9 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { createSignal, For, Show } from "solid-js";
 import { useMutation, useQuery } from "convex-solidjs";
+import { authClient } from "~/lib/auth/client";
 
-export const Route = createFileRoute("/demo/convex")({
+export const Route = createFileRoute("/_demo/")({
   ssr: false,
   component: ConvexTodos,
 });
@@ -65,6 +66,14 @@ function ConvexTodos() {
                 </span>
               </div>
             </Show>
+            <div class="mt-6">
+              <button
+                onClick={() => authClient.signOut()}
+                class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
 
@@ -124,7 +133,7 @@ function ConvexTodos() {
                       todo.completed ? "opacity-75" : ""
                     }`}
                     style={{
-                      "animation-delay": `${index() * 50}ms`,
+                      "animation-delay": "${index() * 50}ms",
                     }}
                   >
                     <button

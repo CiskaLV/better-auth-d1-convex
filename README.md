@@ -1,139 +1,89 @@
-Welcome to your new TanStack app! 
+# Better Auth + D1 + Convex
 
-# Getting Started
+## Introduction
+This is a proof of concept of how to use Better Auth with a D1 database and have that auth in Convex with jwt tokens
 
-To run this application:
+## Why
+I understand that you can store your auth in convex but i don't need it to be reactive and i thing this way lets me be more flexible.
 
-```bash
-bun install
-bun --bun run start
+## Implementation
+### All we do is setup convex to use custom provider for auth
+
+```ts
+// convex/auth.config.ts
+import { AuthConfig } from "convex/server";
+
+export default {
+  providers: [
+    {
+      type: "customJwt",
+      issuer: `${process.env.BETTER_AUTH_URL}`,
+      applicationID: "better-auth",
+      jwks: `${process.env.BETTER_AUTH_URL}/api/auth/.well-known/jwks.json`,
+      algorithm: "ES256",
+    },
+  ],
+} satisfies AuthConfig;
 ```
 
-# Building For Production
-
-To build this application for production:
-
-```bash
-bun --bun run build
-```
-
-## Styling
-
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
-
-
-
-## Routing
-This project uses [TanStack Router](https://tanstack.com/router). The initial setup is a file based router. Which means that the routes are managed as files in `src/routes`.
-
-### Adding A Route
-
-To add a new route to your application just add another a new file in the `./src/routes` directory.
-
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/solid-router`.
-
-```tsx
-import { Link } from "@tanstack/solid-router";
-```
-
-Then anywhere in your JSX you can use it like so:
-
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/solid/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you use the `<Outlet />` component.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { Outlet, createRootRoute } from '@tanstack/solid-router'
-import { TanStackRouterDevtools } from '@tanstack/solid-router-devtools'
-
-import { Link } from "@tanstack/solid-router";
-
-export const Route = createRootRoute({
-  component: () => (
-    <>
-      <header>
-        <nav>
-          <Link to="/">Home</Link>
-          <Link to="/about">About</Link>
-        </nav>
-      </header>
-      <Outlet />
-      <TanStackRouterDevtools />
-    </>
-  ),
+### And then tell Better auth to provide a token
+```ts
+jwt({
+  jwt: {
+    issuer: process.env.BETTER_AUTH_URL,
+    audience: "better-auth", // Must match applicationID in convex/auth.config.ts
+    expirationTime: "7d",
+    //Can set what you want to be included in the JWT payload (will be used by Convex)
+    definePayload: ({ user }: any) => ({
+      email: user.email,
+    }),
+  },
+  jwks: {
+    keyPairConfig: {
+      alg: "ES256",
+    },
+    jwksPath: `/.well-known/jwks.json`, //Not really needed to be defined just fits the standard, Must match jwks in convex/auth.config.ts
+  },
 })
 ```
 
-The `<TanStackRouterDevtools />` component is not required so you can remove it if you don't want it in your layout.
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/solid/guide/routing-concepts#layouts).
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-const peopleRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/people",
-  loader: async () => {
-    const response = await fetch("https://swapi.dev/api/people");
-    return response.json() as Promise<{
-      results: {
-        name: string;
-      }[];
-    }>;
-  },
-  component: () => {
-    const data = peopleRoute.useLoaderData();
-    return (
-      <ul>
-        {data.results.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    );
-  },
+### That we then pass to your convex client
+```ts
+convexClient.setAuth(async () => {
+  const { data } = await authClient.token();
+  return data?.token || null;
 });
 ```
 
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/solid/guide/data-loading#loader-parameters).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-
-## Linting & Formatting
-
-This project uses [Biome](https://biomejs.dev/) for linting and formatting. The following scripts are available:
-
-
+## How to use
+1. Install the dependencies
 ```bash
-bun --bun run lint
-bun --bun run format
-bun --bun run check
+bun install
 ```
 
+2. Setup Environment Variables
+```bash
+cp .env.example .env
+```
 
-# Learn More
+3. Setup Convex Instance (If you don't use local you have to use some thing like ngrok so that convex can access your local machine)
+```bash
+bun x convex dev --local
+```
 
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
+4. Setup Database
+Change the wrangler.jsonc to have your own D1 database
+```bash
+bun x wrangler d1 create <DATABASE_NAME>
+```
+Run migrations to have the required tables
+```bash
+bun run db:migrate
+```
+
+5. Start the application
+```bash
+bun run dev
+```
+
+## I would like to also add a SSR example as in theory it also should work with SSR

@@ -1,10 +1,13 @@
 import { createFileRoute, Outlet } from "@tanstack/solid-router";
 import { ConvexProvider, setupConvex } from "convex-solidjs";
 import { authClient } from "~/lib/auth/client";
+import { authMiddleware } from "~/lib/auth/middleware";
 
-export const Route = createFileRoute("/demo")({
-  ssr: false,
+export const Route = createFileRoute("/_demo")({
   component: RouteComponent,
+  server: {
+    middleware: [authMiddleware],
+  },
 });
 
 function RouteComponent() {
@@ -19,7 +22,6 @@ function RouteComponent() {
 
   convexClient.setAuth(async () => {
     const { data } = await authClient.token();
-    console.log("Token In setAuth", data?.token);
     return data?.token || null;
   });
 

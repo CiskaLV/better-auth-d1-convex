@@ -9,31 +9,29 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as DemoRouteRouteImport } from './routes/demo/route'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as DemoConvexRouteImport } from './routes/demo/convex'
+import { Route as DemoRouteRouteImport } from './routes/_demo/route'
+import { Route as AuthRouteRouteImport } from './routes/_auth/route'
+import { Route as DemoIndexRouteImport } from './routes/_demo/index'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const DemoRouteRoute = DemoRouteRouteImport.update({
-  id: '/demo',
-  path: '/demo',
+  id: '/_demo',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
+const AuthRouteRoute = AuthRouteRouteImport.update({
+  id: '/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoIndexRoute = DemoIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoConvexRoute = DemoConvexRouteImport.update({
-  id: '/convex',
-  path: '/convex',
   getParentRoute: () => DemoRouteRoute,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/_auth/login',
+  id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthRouteRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
@@ -42,69 +40,64 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/demo': typeof DemoRouteRouteWithChildren
   '/login': typeof AuthLoginRoute
-  '/demo/convex': typeof DemoConvexRoute
+  '/': typeof DemoIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/demo': typeof DemoRouteRouteWithChildren
   '/login': typeof AuthLoginRoute
-  '/demo/convex': typeof DemoConvexRoute
+  '/': typeof DemoIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/demo': typeof DemoRouteRouteWithChildren
+  '/_auth': typeof AuthRouteRouteWithChildren
+  '/_demo': typeof DemoRouteRouteWithChildren
   '/_auth/login': typeof AuthLoginRoute
-  '/demo/convex': typeof DemoConvexRoute
+  '/_demo/': typeof DemoIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo' | '/login' | '/demo/convex' | '/api/auth/$'
+  fullPaths: '/login' | '/' | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo' | '/login' | '/demo/convex' | '/api/auth/$'
+  to: '/login' | '/' | '/api/auth/$'
   id:
     | '__root__'
-    | '/'
-    | '/demo'
+    | '/_auth'
+    | '/_demo'
     | '/_auth/login'
-    | '/demo/convex'
+    | '/_demo/'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AuthRouteRoute: typeof AuthRouteRouteWithChildren
   DemoRouteRoute: typeof DemoRouteRouteWithChildren
-  AuthLoginRoute: typeof AuthLoginRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/solid-router' {
   interface FileRoutesByPath {
-    '/demo': {
-      id: '/demo'
-      path: '/demo'
-      fullPath: '/demo'
+    '/_demo': {
+      id: '/_demo'
+      path: ''
+      fullPath: ''
       preLoaderRoute: typeof DemoRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo/convex': {
-      id: '/demo/convex'
-      path: '/convex'
-      fullPath: '/demo/convex'
-      preLoaderRoute: typeof DemoConvexRouteImport
+    '/_demo/': {
+      id: '/_demo/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof DemoIndexRouteImport
       parentRoute: typeof DemoRouteRoute
     }
     '/_auth/login': {
@@ -112,7 +105,7 @@ declare module '@tanstack/solid-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof AuthLoginRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthRouteRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -124,12 +117,24 @@ declare module '@tanstack/solid-router' {
   }
 }
 
+interface AuthRouteRouteChildren {
+  AuthLoginRoute: typeof AuthLoginRoute
+}
+
+const AuthRouteRouteChildren: AuthRouteRouteChildren = {
+  AuthLoginRoute: AuthLoginRoute,
+}
+
+const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
+  AuthRouteRouteChildren,
+)
+
 interface DemoRouteRouteChildren {
-  DemoConvexRoute: typeof DemoConvexRoute
+  DemoIndexRoute: typeof DemoIndexRoute
 }
 
 const DemoRouteRouteChildren: DemoRouteRouteChildren = {
-  DemoConvexRoute: DemoConvexRoute,
+  DemoIndexRoute: DemoIndexRoute,
 }
 
 const DemoRouteRouteWithChildren = DemoRouteRoute._addFileChildren(
@@ -137,9 +142,8 @@ const DemoRouteRouteWithChildren = DemoRouteRoute._addFileChildren(
 )
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AuthRouteRoute: AuthRouteRouteWithChildren,
   DemoRouteRoute: DemoRouteRouteWithChildren,
-  AuthLoginRoute: AuthLoginRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

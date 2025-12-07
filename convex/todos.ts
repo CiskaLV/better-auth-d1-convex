@@ -4,12 +4,15 @@ import { v } from "convex/values";
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
+    const user = await ctx.auth.getUserIdentity();
+    if (user === null) {
+      throw new Error("Unauthorized");
+    }
 
-    console.log(identity);
+    console.log(user);
     return await ctx.db
       .query("todos")
-      .withIndex("by_creation_time")
+      .withIndex("by_author", (q) => q.eq("author", user.subject))
       .order("desc")
       .collect();
   },
@@ -18,9 +21,15 @@ export const list = query({
 export const add = mutation({
   args: { text: v.string() },
   handler: async (ctx, args) => {
+    const user = await ctx.auth.getUserIdentity();
+    if (user === null) {
+      throw new Error("Unauthorized");
+    }
+
     return await ctx.db.insert("todos", {
       text: args.text,
       completed: false,
+      author: user.subject,
     });
   },
 });

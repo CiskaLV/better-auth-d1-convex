@@ -1,7 +1,6 @@
 import { betterAuth } from "better-auth";
-// import { oidc } from "~/lib/auth/plugins/oidc";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
-import { openAPI, oidcProvider, jwt, genericOAuth } from "better-auth/plugins";
+import { openAPI, jwt } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "~/lib/db";
 import * as schema from "~/lib/db/auth-schema";
@@ -29,36 +28,17 @@ export const auth = betterAuth({
     },
   },
 
-  jwt: {
-    enabled: true,
-    issuer: process.env.BETTER_AUTH_URL,
-    audience: "better-auth",
-    expiresIn: 60 * 60 * 24 * 7,
-
-    customize: (user: any) => {
-      return {
-        sub: user.id, // User ID in subject claim (what Convex reads)
-        // Optional: Add other useful claims
-        email: user.email,
-        email_verified: user.emailVerified,
-        // Don't add sensitive data like passwords or tokens!
-      };
-    },
-  },
-
   plugins: [
     openAPI(),
     tanstackStartCookies(),
     jwt({
-      // JWT plugin configuration - nested under 'jwt' property
       jwt: {
         issuer: process.env.BETTER_AUTH_URL,
         audience: "better-auth", // Must match applicationID in convex/auth.config.ts
-        expirationTime: "7d", // 7 days to match session expiration
-        // Custom JWT payload claims
+        expirationTime: "7d",
+        //Can set what you want to be included in the JWT payload (will be used by Convex)
         definePayload: ({ user }: any) => ({
-          email: user.email,
-          email_verified: user.emailVerified,
+          // email: user.email,
         }),
       },
       // JWKS key configuration - Convex only supports RS256 and ES256
@@ -66,44 +46,9 @@ export const auth = betterAuth({
         keyPairConfig: {
           alg: "ES256",
         },
-        jwksPath: `/.well-known/jwks.json`,
+        jwksPath: `/.well-known/jwks.json`, //Not really needed to be defined just fits the standard, Must match jwks in convex/auth.config.ts
       },
     }),
-    // jwt({
-    //   jwt: {
-    //     audience: "convex",
-    //   },
-    //   jwks: {
-    //     jwksPath: "/.well-known/jwks.json",
-    //     keyPairConfig: {
-    //       alg: "RS256",
-    //     },
-    //   },
-    //   disableSettingJwtHeader: true,
-    // }),
-    // oidcProvider({
-    //   useJWTPlugin: true,
-    //   loginPage: "/login",
-    //   trustedClients: [
-    //     {
-    //       clientId: "convex",
-    //       clientSecret: "convex",
-    //       name: "Convex App kind of cool",
-    //       type: "web",
-    //       redirectUrls: [
-    //         "https://openidconnect.net/callback",
-    //         "https://psteniusubi.github.io/oidc-tester/authorization-code-flow.html",
-    //         "https://oidcdebugger.com/debug",
-    //       ],
-    //       disabled: false,
-    //       skipConsent: true,
-    //       metadata: {},
-    //     },
-    //   ],
-    //   metadata: {
-    //     jwks_uri: `${process.env.BETTER_AUTH_URL}/api/auth/.well-known/jwks.json`,
-    //   },
-    // }),
   ],
   socialProviders: {
     github: {
