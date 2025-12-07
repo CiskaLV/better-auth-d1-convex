@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/solid-router";
+import { createFileRoute, useNavigate } from "@tanstack/solid-router";
 
 import Trash2 from "lucide-solid/icons/trash-2";
 import Plus from "lucide-solid/icons/plus";
@@ -17,6 +17,8 @@ export const Route = createFileRoute("/_demo/")({
 });
 
 function ConvexTodos() {
+  const navigate = useNavigate();
+
   const todos = useQuery(api.todos.list, () => ({}));
   const addTodo = useMutation(api.todos.add);
   const toggleTodo = useMutation(api.todos.toggle);
@@ -68,7 +70,15 @@ function ConvexTodos() {
             </Show>
             <div class="mt-6">
               <button
-                onClick={() => authClient.signOut()}
+                onClick={() => {
+                  authClient.signOut({
+                    fetchOptions: {
+                      onSuccess: () => {
+                        navigate({ to: "/login" });
+                      },
+                    },
+                  });
+                }}
                 class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
               >
                 Sign Out

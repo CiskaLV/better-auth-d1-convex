@@ -9,7 +9,6 @@ export const list = query({
       throw new Error("Unauthorized");
     }
 
-    console.log(user);
     return await ctx.db
       .query("todos")
       .withIndex("by_author", (q) => q.eq("author", user.subject))
